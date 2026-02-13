@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For You 🤍</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500&display=swap');
+
+*{box-sizing:border-box}
+body{
+    margin:0;
+    font-family:'Prompt',sans-serif;
+    background:
+        radial-gradient(circle at top,#ffe6ef,transparent 60%),
+        linear-gradient(180deg,#fde7ef,#fff);
+    overflow:hidden;
+}
+
+/* ===== Floating Hearts ===== */
+.heart{
+    position:fixed;
+    bottom:-20px;
+    color:rgba(255,120,160,.35);
+    animation:floatUp linear infinite;
+    pointer-events:none;
+}
+@keyframes floatUp{
+    from{transform:translateY(0) scale(.8);opacity:0}
+    20%{opacity:1}
+    to{transform:translateY(-120vh) scale(1.2);opacity:0}
+}
+
+/* ===== Rose Petals ===== */
+.petal{
+    position:fixed;
+    top:-10%;
+    font-size:18px;
+    animation:petalFall linear infinite;
+    opacity:.5;
+    pointer-events:none;
+}
+@keyframes petalFall{
+    to{transform:translateY(120vh) rotate(360deg);opacity:0}
+}
+
+/* ===== Pages ===== */
+.page{
+    display:none;
+    min-height:100vh;
+    padding:24px;
+}
+.page.active{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    animation:pageIn .9s cubic-bezier(.4,0,.2,1);
+}
+@keyframes pageIn{
+    from{opacity:0;transform:translateY(30px) scale(.96)}
+    to{opacity:1;transform:none}
+}
+
+h2{
+    color:#e75480;
+    font-weight:500;
+    margin-bottom:26px;
+}
+
+/* ===== Button ===== */
+.btn{
+    margin-top:28px;
+    padding:14px 38px;
+    border-radius:999px;
+    border:none;
+    background:linear-gradient(135deg,#ff7aa2,#ffb3c7);
+    color:#fff;
+    font-size:15px;
+    box-shadow:0 14px 34px rgba(255,120,160,.4);
+}
+.btn:active{transform:scale(.94)}
+
+/* ===== Envelope ===== */
+.envelope-box{
+    width:290px;
+    height:200px;
+    position:relative;
+    animation:float 4.5s ease-in-out infinite;
+}
+@keyframes float{50%{transform:translateY(-14px)}}
+
+.envelope{
+    position:absolute;
+    inset:0;
+    background:linear-gradient(160deg,#ffb6c9,#ff8fb1);
+    border-radius:26px;
+    box-shadow:
+        0 0 0 rgba(255,120,160,0);
+    overflow:hidden;
+    transition:box-shadow .8s;
+}
+
+/* ✨ Glow วิ้ง */
+.envelope.glow{
+    box-shadow:
+        0 0 25px rgba(255,120,160,.6),
+        0 0 60px rgba(255,160,200,.45),
+        0 30px 60px rgba(255,120,160,.35);
+}
+
+.envelope:before{
+    content:'';
+    position:absolute;
+    top:0;left:0;
+    width:0;height:0;
+    border-left:145px solid transparent;
+    border-right:145px solid transparent;
+    border-top:100px solid #ff7fa8;
+    transform-origin:top;
+    transition:1s cubic-bezier(.4,0,.2,1);
+}
+.envelope.open:before{transform:rotateX(180deg)}
+
+.letter{
+    position:absolute;
+    width:88%;
+    left:6%;
+    bottom:14px;
+    background:rgba(255,255,255,.95);
+    backdrop-filter:blur(14px);
+    border-radius:22px;
+    padding:24px;
+    opacity:0;
+    transform:translateY(40px) scale(.96);
+    transition:1s cubic-bezier(.4,0,.2,1);
+    pointer-events:none;
+}
+.letter.show{
+    opacity:1;
+    transform:translateY(-45%) scale(1);
+    pointer-events:auto;
+}
+.letter p{color:#e75480;margin:10px 0}
+
+/* 💖 Heart burst */
+.burst{
+    position:fixed;
+    font-size:20px;
+    animation:burst .9s ease-out forwards;
+    pointer-events:none;
+}
+@keyframes burst{
+    to{
+        transform:translate(var(--x),var(--y)) scale(.2);
+        opacity:0;
+    }
+}
+
+/* ===== Scratch ===== */
+.scratch-wrap{
+    position:relative;
+    width:260px;
+    height:260px;
+}
+
+canvas.fade{opacity:.15}
+.reveal{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    opacity:0;
+    transform:scale(.9);
+    transition:1s cubic-bezier(.4,0,.2,1);
+}
+.reveal.show{opacity:1;transform:scale(1)}
+
+
+/* ===== Final Card ===== */
+.avatar{
+    width:150px;height:150px;border-radius:50%;
+    object-fit:cover;
+    border:6px solid rgba(255,255,255,.9);
+    box-shadow:0 25px 60px rgba(255,120,160,.45);
+}
+.card{
+    margin-top:26px;
+    width:92%;max-width:380px;
+    padding:28px;
+    background:rgba(255,255,255,.95);
+    backdrop-filter:blur(14px);
+    border-radius:28px;
+    box-shadow:0 30px 70px rgba(0,0,0,.2);
+    overflow-y:auto;
+}
+.card p{color:#e75480;margin:14px 0}
+
+/* 💓 Heartbeat Glow */
+@keyframes heartGlow {
+    0% {
+        box-shadow:
+            0 0 18px rgba(255,120,160,.4),
+            0 0 40px rgba(255,160,200,.25),
+            0 30px 60px rgba(255,120,160,.3);
+    }
+    20% {
+        box-shadow:
+            0 0 35px rgba(255,120,160,.9),
+            0 0 90px rgba(255,160,200,.6),
+            0 35px 70px rgba(255,120,160,.45);
+    }
+    40% {
+        box-shadow:
+            0 0 22px rgba(255,120,160,.5),
+            0 0 55px rgba(255,160,200,.35),
+            0 30px 60px rgba(255,120,160,.35);
+    }
+    100% {
+        box-shadow:
+            0 0 18px rgba(255,120,160,.4),
+            0 0 40px rgba(255,160,200,.25),
+            0 30px 60px rgba(255,120,160,.3);
+    }
+}
+
+/* ใช้ร่วมกับ glow เดิม */
+.envelope.heartbeat {
+    animation: heartGlow 1.2s ease-in-out infinite;
+}
+
+/* รูปที่ซ่อนอยู่ใต้แผ่นขูด */
+.scratch-img{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    border-radius:26px;
+    z-index:0;
+    opacity:0;                 /* 🔥 สำคัญ */
+    transition:opacity 1.2s ease;
+}
+
+
+/* canvas ต้องอยู่บนสุด */
+#scratch{
+    position:relative;
+    z-index:2;
+}
+
+/* ===== Reveal ใต้รูป ===== */
+.reveal.under{
+    position:relative;
+    margin-top:18px;
+    opacity:0;
+    transform:translateY(20px);
+}
+
+.reveal.show{
+    opacity:1;
+    transform:translateY(0);
+}
+
+/* ปุ่มตอนยังล็อก */
+#nextBtn:disabled{
+    opacity:.5;
+    box-shadow:none;
+}
+
+/* เคอร์เซอร์พิมพ์ */
+.typing::after{
+    content: '|';
+    margin-left:4px;
+    animation: blink 1s infinite;
+}
+@keyframes blink{
+    50%{opacity:0}
+}
+
+</style>
+</head>
+
+<body>
+
+<audio id="bgm" src="music.mp3" loop></audio>
+
+<!-- PAGE 1 -->
+<div class="page active" id="p1">
+    <h2>มีอะไรให้เธอ 🤍</h2>
+    <div class="envelope-box" onclick="openEnv()">
+        <div class="envelope" id="env"></div>
+        <div class="letter" id="letter">
+            <p>Happy Valentine's Day</p>
+            <p>ขอบคุณน้องที่ทําให้มีรอยยิ้ม ได้เจอกัน น้องน่ารัก
+                สวยเป็นธรรมชาติมากๆ พี่ชอบตอนน้องจีน่ายิ้มมากๆน่ะ
+                มันน่ารัก พี่ชอบในแบบน้องมากๆๆๆๆ 💕</p>
+            <button class="btn" onclick="go(2)">ไปกันต่อ</button>
+        </div>
+    </div>
+</div>
+
+<!-- PAGE 2 -->
+<div class="page" id="p2">
+
+    <h2>ขูดเบา ๆ ดูสิ ✨</h2>
+
+    <div class="scratch-wrap">
+
+        <img src="profile.jpg" class="scratch-img" id="realImg">
+
+        <canvas id="scratch" width="260" height="260"></canvas>
+
+        <div class="reveal under" id="rv">
+    <h3 id="typeText" style="color:#e75480"></h3>
+    <button class="btn" id="nextBtn" onclick="go(3)" disabled>ถัดไป</button>
+</div>
+
+
+    </div>
+
+</div>
+
+
+
+<!-- PAGE 3 -->
+<div class="page" id="p3">
+    <img src="profile.jpg" class="avatar">
+
+    <div class="card">
+        <p id="finalText"></p>
+        <p style="opacity:.7;margin-top:16px">- จากพี่พั้บ -</p>
+    </div>
+</div>
+
+
+<script>
+function go(n){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    const page = document.getElementById('p'+n);
+    page.classList.add('active');
+
+    // 👉 ถ้าเข้า PAGE 3 ให้เริ่มพิมพ์
+    if(n === 3){
+        setTimeout(startFinalTyping, 500);
+    }
+}
+
+
+/* 💖 Open Envelope */
+function openEnv(){
+    const env=document.getElementById('env');
+    const letter=document.getElementById('letter');
+    const bgm=document.getElementById('bgm');
+
+    if(env.classList.contains('open')) return;
+
+    env.classList.add('open','glow','heartbeat');
+
+    bgm.volume=0;
+    bgm.play();
+    let v=0;
+    let fade=setInterval(()=>{
+        if(v<0.6){v+=0.05;bgm.volume=v}else clearInterval(fade);
+    },200);
+
+    heartBurst();
+
+    setTimeout(()=>letter.classList.add('show'),700);
+}
+
+/* 💖 Heart burst effect */
+function heartBurst(){
+    for(let i=0;i<14;i++){
+        let h=document.createElement('div');
+        h.className='burst';
+        h.innerHTML='💖';
+        h.style.left='50%';
+        h.style.top='50%';
+        h.style.setProperty('--x',(Math.random()*300-150)+'px');
+        h.style.setProperty('--y',(Math.random()*300-150)+'px');
+        document.body.appendChild(h);
+        setTimeout(()=>h.remove(),900);
+    }
+}
+
+/* Floating hearts */
+setInterval(()=>{
+    let h=document.createElement('div');
+    h.className='heart';
+    h.innerHTML='💗';
+    h.style.left=Math.random()*100+'vw';
+    h.style.animationDuration=8+Math.random()*6+'s';
+    document.body.appendChild(h);
+    setTimeout(()=>h.remove(),12000);
+},600);
+
+/* Rose petals */
+setInterval(()=>{
+    let p=document.createElement('div');
+    p.className='petal';
+    p.innerHTML='🌸';
+    p.style.left=Math.random()*100+'vw';
+    p.style.animationDuration=10+Math.random()*8+'s';
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),16000);
+},1200);
+
+/* Scratch */
+const c = document.getElementById('scratch');
+const ctx = c.getContext('2d');
+
+let draw = false;
+
+// วาดแผ่นสีดำทับเต็ม 100%
+ctx.fillStyle = '#000';
+ctx.fillRect(0, 0, c.width, c.height);
+
+// ตั้งโหมดขูด
+ctx.globalCompositeOperation = 'destination-out';
+
+function sc(e){
+    if(!draw) return;
+
+    let r = c.getBoundingClientRect();
+    let x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+    let y = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
+
+    ctx.beginPath();
+    ctx.arc(x, y, 22, 0, Math.PI * 2);
+    ctx.fill();
+
+    checkPercent();
+}
+
+let typed = false;
+
+function checkPercent(){
+    let imgData = ctx.getImageData(0,0,c.width,c.height).data;
+    let cleared = 0;
+
+    for(let i=3;i<imgData.length;i+=4){
+        if(imgData[i] === 0) cleared++;
+    }
+
+    let percent = cleared / (imgData.length / 4);
+
+    // canvas ค่อย ๆ จาง
+    c.style.opacity = 1 - (percent * 0.9);
+
+    // รูปค่อย ๆ โผล่หลัง 70%
+    const realImg = document.getElementById('realImg');
+    if(percent > 0.7){
+        realImg.style.opacity = Math.min((percent - 0.7) / 0.2, 1);
+    }
+
+    // หลัง 85% → แสดงข้อความ + เริ่มพิมพ์
+    if(percent > 0.85 && !typed){
+        typed = true;
+        document.getElementById('rv').classList.add('show');
+        typeWriter(
+            "เว็ปที่สอง สําหรับวันสําคัญวันนี้ พี่ตั้งใจทํา เพื่อให้น้องน่ะ พี่ดีใจมาก มีความสุขตอนดูหนัง  ยิ้มน่ารักมากก พี่ชอบรอยยิ้มน้องมากกๆ. 🤍",
+            document.getElementById('typeText'),
+            () => document.getElementById('nextBtn').disabled = false
+        );
+    }
+}
+
+function typeWriter(text, el, done){
+    let i = 0;
+    el.innerHTML = "";
+    let timer = setInterval(()=>{
+        el.innerHTML += text.charAt(i);
+        i++;
+        if(i >= text.length){
+            clearInterval(timer);
+            if(done) done();
+        }
+    }, 70);
+}
+
+let finalTyped = false;
+
+function startFinalTyping(){
+    if(finalTyped) return;
+    finalTyped = true;
+
+    const text = 
+`ขอบคุณที่เข้ามาน่ะคับ อยู่น่ารักแบบนี้ ไปเรื่อยๆน่ะคับ 🤍`;
+
+    const el = document.getElementById('finalText');
+    el.innerHTML = "";
+    el.classList.add('typing');
+
+    let i = 0;
+    let timer = setInterval(()=>{
+        el.innerHTML += text.charAt(i) === '\n' ? '<br>' : text.charAt(i);
+        i++;
+
+        if(i >= text.length){
+            clearInterval(timer);
+            el.classList.remove('typing');
+        }
+    }, 70);
+}
+
+
+['mousedown','touchstart'].forEach(e =>
+    c.addEventListener(e, ()=>draw=true)
+);
+['mouseup','touchend'].forEach(e =>
+    c.addEventListener(e, ()=>draw=false)
+);
+['mousemove','touchmove'].forEach(e =>
+    c.addEventListener(e, sc)
+);
+</script>
+
+</body>
+</html>
